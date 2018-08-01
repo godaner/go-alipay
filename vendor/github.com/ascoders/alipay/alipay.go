@@ -66,7 +66,14 @@ func (this *Client) Form(opts Options) string {
 
 	//生成自动提交form
 	return `
-		<form id="alipaysubmit" name="alipaysubmit" action="https://mapi.alipay.com/gateway.do?_input_charset=utf-8" method="get" style='display:none;'>
+	<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<form id="alipaysubmit" name="alipaysubmit" action="https://mapi.alipay.com/gateway.do?_input_charset=utf-8" method="get" style='display:none;'>
 			<input type="hidden" name="_input_charset" value="` + param.InputCharset + `">
 			<input type="hidden" name="body" value="` + param.Body + `">
 			<input type="hidden" name="notify_url" value="` + param.NotifyUrl + `">
@@ -81,9 +88,13 @@ func (this *Client) Form(opts Options) string {
 			<input type="hidden" name="sign" value="` + param.Sign + `">
 			<input type="hidden" name="sign_type" value="` + param.SignType + `">
 		</form>
-		<script>
+</body>
+<script>
 			document.forms['alipaysubmit'].submit();
 		</script>
+</html>
+		
+		
 	`
 }
 

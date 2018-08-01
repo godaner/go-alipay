@@ -1,4 +1,4 @@
-package: .
+package: go-alipay
 import:
 - package: github.com/Masterminds/semver
   version: v1.4.2
@@ -10,3 +10,13 @@ import:
 - package: gopkg.in/yaml.v2
   version: v2.2.1
 - package: github.com/ascoders/alipay
+- package: github.com/smartwalle/alipay
+- package: github.com/godaner/go-route
+- package: github.com/godaner/go-util
+- package: github.com/astaxie/beego
+  version: v1.10.1
+  subpackages:
+  - session
+- package: gopkg.in/mgo.v2
+  subpackages:
+  - bson
