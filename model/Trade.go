@@ -7,7 +7,7 @@ const (
 )
 type Trade struct {
 	Subject string	`bson:subject`
-	TradeNo string	`bson:tradeNo`
+	TradeNo string	`bson:tradeno`
 	Amount string	`bson:amount`
 	Status uint8	`bson:status`
 }

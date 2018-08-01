@@ -84,14 +84,24 @@ func PayReturnHandler(response route.RouteResponse, request route.RouteRequest) 
 	PayOverHandler(response,request)
 }
 func PayOverHandler(response route.RouteResponse, request route.RouteRequest){
+
+
 	if request.Params == nil{
 		log.Println("支付失败")
 		return
 	}
-	tradeNo:=request.Params["out_trade_no"]
 	session:=mgosess.OpenSession()
 	c:=session.DB(mgosess.DB).C(model.TradeCol)
-	c.Update(bson.M{"tradeNo":tradeNo},bson.M{"status":model.SUCCESS})
-	log.Println("TreadeNo is : ",tradeNo," - 支付成功")
+
+	tradeNo:=request.Params["out_trade_no"]
+	// exits
+	trade := &model.Trade{}
+	c.Find(bson.M{"tradeno":tradeNo}).One(trade)
+	if trade==nil {
+		log.Println("tradeno is : ",tradeNo," 不存在")
+	}
+	// update
+	c.Update(bson.M{"tradeno":tradeNo},bson.M{"$set":bson.M{"status":model.SUCCESS}})
+	log.Println("tradeno is : ",tradeNo," - 支付成功")
 
 }
