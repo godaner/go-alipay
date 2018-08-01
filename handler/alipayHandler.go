@@ -23,14 +23,16 @@ const(
 //alipay client
 var client = alipay.New(APP_ID, PARTNER_ID, PUBLIC_KEY, PRIVATE_KEY, false)
 
-//url like: http://localhost/alipay/pay?subject=支付午餐&amount=10000
-func PayHandler(response route.RouteResponse, request route.RouteRequest) {
+//mobile wap page , it will try to open alipay app
+//url like: http://localhost/alipay/pay/mobile?subject=支付午餐&amount=10000
+func MobilePayHandler(response route.RouteResponse, request route.RouteRequest) {
 	//var
 	subject:=request.Params["subject"].(string)
 	tradeNo:= timeutil.UnixStr()
 	amount:=request.Params["amount"].(string)
 	//param
-	var p = alipay.AliPayTradeWapPay{}
+	var p = alipay.AliPayTradeWapPay{} //mobile wap page , it will try to open alipay app
+	//var p = alipay.AliPayTradePagePay{} //pc web page
 	p.NotifyURL = NOTIFY_URL
 	p.ReturnURL = RETURN_URL
 	p.Subject = subject
@@ -41,6 +43,7 @@ func PayHandler(response route.RouteResponse, request route.RouteRequest) {
 	log.Println("treade is :" ,p)
 	//new trade
 	var url, err = client.TradeWapPay(p)
+	//var url, err = client.TradePagePay(p) //
 	if err != nil {
 		log.Println(err)
 		return
@@ -61,6 +64,48 @@ func PayHandler(response route.RouteResponse, request route.RouteRequest) {
 	httputil.WriteTemplate(response.ResponseWriter,getForwardAlipayHtml(payURL))
 
 }
+//pc web page
+//url like: http://localhost/alipay/pay/pc?subject=支付午餐&amount=10000
+func PcPayHandler(response route.RouteResponse, request route.RouteRequest) {
+	//var
+	subject:=request.Params["subject"].(string)
+	tradeNo:= timeutil.UnixStr()
+	amount:=request.Params["amount"].(string)
+	//param
+	//var p = alipay.AliPayTradeWapPay{} //mobile wap page , it will try to open alipay app
+	var p = alipay.AliPayTradePagePay{} //pc web page
+	p.NotifyURL = NOTIFY_URL
+	p.ReturnURL = RETURN_URL
+	p.Subject = subject
+	p.OutTradeNo = tradeNo
+	p.TotalAmount = amount
+	p.ProductCode = PRODUCT_CODE
+
+	log.Println("treade is :" ,p)
+	//new trade
+	//var url, err = client.TradeWapPay(p) //mobile wap page , it will try to open alipay app
+	var url, err = client.TradePagePay(p) //pc web page
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	//save
+	session:=mgosess.OpenSession()
+	c:=session.DB(mgosess.DB).C(model.TradeCol)
+	c.Insert(model.Trade{
+		Subject:subject,
+		TradeNo:tradeNo,
+		Amount:amount,
+		Status:model.UN_FINISH,
+	})
+	//res
+	var payURL = url.String()
+	log.Println("payURL is : " + payURL)
+
+	httputil.WriteTemplate(response.ResponseWriter,getForwardAlipayHtml(payURL))
+
+}
+
 func getForwardAlipayHtml(payURL string)(string){
 	return `
 <!DOCTYPE html>
