@@ -3,12 +3,12 @@ package handler
 import (
 	"github.com/godaner/go-route/route"
 	"github.com/smartwalle/alipay"
-	"go-util/httputil"
+	"github.com/godaner/go-util/httputil"
 	"go-alipay/mgosess"
 	"go-alipay/model"
 	"log"
 	"gopkg.in/mgo.v2/bson"
-	"go-util/timeutil"
+	"github.com/godaner/go-util/timeutil"
 )
 
 const(
