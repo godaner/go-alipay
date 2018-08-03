@@ -1,6 +1,0 @@
-hash: 126563717b59438f7907e075ca0a8d0f513ebcb52d793a7a57525035389c5a75
-updated: 2018-08-01T11:38:09.4337348+08:00
-imports:
-- name: github.com/godaner/go-route
-  version: cd1e6bb8074808fc5a1d711526c6f4b3f7896ffd
-testImports: []
