@@ -27,7 +27,7 @@
 
 [[constraint]]
   name = "github.com/godaner/go-route"
-  version = "2.1.1"
+  branch = "master"
 
 [[constraint]]
   branch = "master"

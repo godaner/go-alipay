@@ -2,34 +2,46 @@
 
 
 [[projects]]
-  digest = "1:c733d226762ee809eaa599ddbd55f8c126234956b766d6c7d36d363e8ed01483"
+  branch = "master"
+  digest = "1:228a03a679f6169421993167e028f9e157a9f4b026b943c835a804ed1f5bd28f"
   name = "github.com/godaner/go-route"
   packages = ["route"]
   pruneopts = "UT"
-  revision = "de46252a5f25482fd8740e0e2a436ff6239a1a0c"
-  version = "2.1.1"
+  revision = "592fed4c378f8e813df0e6690979f8afaf870164"
 
 [[projects]]
   branch = "master"
-  digest = "1:969aaed565c2b808735824ab5e47b8578c1555408f311469d71aa764616a4ed3"
+  digest = "1:9b79bd952eb1a7948549b938b94dc561699cfd996806d913d28f0b5359b17a82"
   name = "github.com/godaner/go-util"
   packages = [
     "httputil",
     "timeutil",
   ]
   pruneopts = "UT"
-  revision = "6ba20c5863712af7dedabcac1e05286e5c8bcf0f"
+  revision = "b5a3b96b4be90a1d9c6af48abbafe3a1b5a8b8d1"
 
 [[projects]]
   branch = "master"
-  digest = "1:b1fc83566d9e5dd287125132fea112a475ee40addf212cfa3aa0cc6efebf25b1"
+  digest = "1:bf1cb2d456a753d515d90e43c4b05afa4837e75d7808d1752607b91007ce25bb"
+  name = "github.com/skip2/go-qrcode"
+  packages = [
+    ".",
+    "bitset",
+    "reedsolomon",
+  ]
+  pruneopts = "UT"
+  revision = "cf5f9fa2f0d847edb8e038db7ed975e239095e1a"
+
+[[projects]]
+  branch = "master"
+  digest = "1:65bd6e284dee58872dcb9502aec2ae172603cf2814d1874b7650621259955244"
   name = "github.com/smartwalle/alipay"
   packages = [
     ".",
     "encoding",
   ]
   pruneopts = "UT"
-  revision = "58cec20e3e22caced7114b0f405f54c1108ab3b6"
+  revision = "d547e14698f2c5a210e052738f9ce1649880a07f"
 
 [[projects]]
   branch = "v2"
@@ -52,6 +64,7 @@
     "github.com/godaner/go-route/route",
     "github.com/godaner/go-util/httputil",
     "github.com/godaner/go-util/timeutil",
+    "github.com/skip2/go-qrcode",
     "github.com/smartwalle/alipay",
     "gopkg.in/mgo.v2",
     "gopkg.in/mgo.v2/bson",
