@@ -185,31 +185,35 @@ func PayReturnHandler(response route.RouteResponse, request route.RouteRequest) 
 }
 func PayOverHandler(response route.RouteResponse, request route.RouteRequest){
 
-	if request.Params == nil {
-		return
+	// verify sign
+	var noti, _ = client.GetTradeNotification(request.Request)
+	// handler service
+	if noti!=nil{
+
+		if noti.TradeStatus == TRADE_SUCCESS {
+
+			session:=mgosess.OpenSession()
+			c:=session.DB(mgosess.DB).C(model.TradeCol)
+
+			tradeNo:=noti.OutTradeNo
+			// exits
+			trade := &model.Trade{}
+			c.Find(bson.M{"tradeno":tradeNo}).One(trade)
+			if trade==nil {
+				log.Println("tradeno is : ",tradeNo," 不存在")
+				return
+			}
+			if trade.Status != model.UN_FINISH {
+				log.Println("tradeno is : ",tradeNo," 已经结束")
+				return
+			}
+			// update
+			c.Update(bson.M{"tradeno":tradeNo},bson.M{"$set":bson.M{"status":model.SUCCESS}})
+			log.Println("tradeno is : ",tradeNo," - 支付成功")
+			response.ResponseWriter.Write([]byte("success"))
+		}
 	}
 
-	if request.Params["trade_status"] == TRADE_SUCCESS {
-		session:=mgosess.OpenSession()
-		c:=session.DB(mgosess.DB).C(model.TradeCol)
-
-		tradeNo:=request.Params["out_trade_no"]
-		// exits
-		trade := &model.Trade{}
-		c.Find(bson.M{"tradeno":tradeNo}).One(trade)
-		if trade==nil {
-			log.Println("tradeno is : ",tradeNo," 不存在")
-			return
-		}
-		if trade.Status != model.UN_FINISH {
-			log.Println("tradeno is : ",tradeNo," 已经结束")
-			return
-		}
-		// update
-		c.Update(bson.M{"tradeno":tradeNo},bson.M{"$set":bson.M{"status":model.SUCCESS}})
-		log.Println("tradeno is : ",tradeNo," - 支付成功")
-		response.ResponseWriter.Write([]byte("success"))
-	}
 
 
 }
