@@ -12,6 +12,7 @@ import (
 	"github.com/skip2/go-qrcode"
 	"fmt"
 	"gopkg.in/mgo.v2/bson"
+	"strconv"
 )
 
 const(
@@ -24,19 +25,35 @@ const(
 	PRODUCT_CODE  ="FAST_INSTANT_TRADE_PAY"
 	IS_PRODUCTION =false
 	TRADE_SUCCESS ="TRADE_SUCCESS"
-	USER_ID       =1
-	NODE          =1
+	USER_ID =1
+	UNIQUE_ID =1
 )
 //alipay client
 var client = alipay.New(APP_ID, PARTNER_ID, PUBLIC_KEY, PRIVATE_KEY, IS_PRODUCTION)
-
+func init(){
+	session:=mgosess.OpenSession()
+	defer session.Close()
+	c2:=session.DB(mgosess.DB).C(model.UserCol)
+	query:=bson.M{"id":USER_ID}
+	q:=c2.Find(query)
+	if n,_ :=q.Count();n == 0{
+		u:=model.User{
+			Id:USER_ID,
+			Name:"zk",
+			Money:0,
+		}
+		c2.Insert(u)
+		log.Println("init insert default user : ",u)
+	}
+}
 //mobile wap page , it will try to open alipay app
 //url like: http://localhost/alipay/pay/mobile?subject=支付午餐&amount=10000
 func MobilePayHandler(response route.RouteResponse, request route.RouteRequest) {
 	//var
 	subject:=request.Params["subject"].(string)
-	tradeNo:= string(randomutil.GetSnowFlakeId(NODE))
-	amount:=request.Params["amount"].(string)
+	tradeNo:= randomutil.GetSnowFlakeIdStr(UNIQUE_ID)
+	amountStr:= fmt.Sprintf("%s",request.Params["amount"])
+	amount,_:=strconv.ParseFloat(amountStr,64)
 	//param
 	var p = alipay.AliPayTradeWapPay{} //mobile wap page , it will try to open alipay app
 	//var p = alipay.AliPayTradePagePay{} //pc web page
@@ -44,7 +61,7 @@ func MobilePayHandler(response route.RouteResponse, request route.RouteRequest) 
 	p.ReturnURL = RETURN_URL
 	p.Subject = subject
 	p.OutTradeNo = tradeNo
-	p.TotalAmount = amount
+	p.TotalAmount = amountStr
 	p.ProductCode = PRODUCT_CODE
 
 	log.Println("treade is :" ,p)
@@ -57,9 +74,10 @@ func MobilePayHandler(response route.RouteResponse, request route.RouteRequest) 
 	}
 	//save
 	session:=mgosess.OpenSession()
+	defer session.Close()
 	c:=session.DB(mgosess.DB).C(model.TradeCol)
 	c.Insert(model.Trade{
-		Id:randomutil.GetSnowFlakeId(NODE),
+		Id:randomutil.GetSnowFlakeId(UNIQUE_ID),
 		UserId:USER_ID,
 		Subject:subject,
 		TradeNo:tradeNo,
@@ -80,7 +98,8 @@ func QrPayHandler(response route.RouteResponse, request route.RouteRequest) {
 	//var
 	subject:=request.Params["subject"].(string)
 	tradeNo:= timeutil.UnixStr()
-	amount:=request.Params["amount"].(string)
+	amountStr:= fmt.Sprintf("%s",request.Params["amount"])
+	amount,_:=strconv.ParseFloat(amountStr,64)
 	//param
 	var p = alipay.AliPayTradePreCreate{} //mobile wap page , it will try to open alipay app
 	//var p = alipay.AliPayTradePagePay{} //pc web page
@@ -88,7 +107,7 @@ func QrPayHandler(response route.RouteResponse, request route.RouteRequest) {
 	p.ReturnURL = RETURN_URL
 	p.Subject = subject
 	p.OutTradeNo = tradeNo
-	p.TotalAmount = amount
+	p.TotalAmount = amountStr
 
 	log.Println("treade is :" ,p)
 	//new trade
@@ -100,9 +119,10 @@ func QrPayHandler(response route.RouteResponse, request route.RouteRequest) {
 	}
 	//save
 	session:=mgosess.OpenSession()
+	defer session.Close()
 	c:=session.DB(mgosess.DB).C(model.TradeCol)
 	c.Insert(model.Trade{
-		Id:randomutil.GetSnowFlakeId(NODE),
+		Id:randomutil.GetSnowFlakeId(UNIQUE_ID),
 		UserId:USER_ID,
 		Subject:subject,
 		TradeNo:tradeNo,
@@ -131,7 +151,8 @@ func PcPayHandler(response route.RouteResponse, request route.RouteRequest) {
 	//var
 	subject:=request.Params["subject"].(string)
 	tradeNo:= timeutil.UnixStr()
-	amount:=request.Params["amount"].(string)
+	amountStr:= fmt.Sprintf("%s",request.Params["amount"])
+	amount,_:=strconv.ParseFloat(amountStr,64)
 	//param
 	//var p = alipay.AliPayTradeWapPay{} //mobile wap page , it will try to open alipay app
 	var p = alipay.AliPayTradePagePay{} //pc web page
@@ -139,7 +160,7 @@ func PcPayHandler(response route.RouteResponse, request route.RouteRequest) {
 	p.ReturnURL = RETURN_URL
 	p.Subject = subject
 	p.OutTradeNo = tradeNo
-	p.TotalAmount = amount
+	p.TotalAmount = amountStr
 	p.ProductCode = PRODUCT_CODE
 
 	log.Println("treade is :" ,p)
@@ -152,9 +173,10 @@ func PcPayHandler(response route.RouteResponse, request route.RouteRequest) {
 	}
 	//save
 	session:=mgosess.OpenSession()
+	defer session.Close()
 	c:=session.DB(mgosess.DB).C(model.TradeCol)
 	c.Insert(model.Trade{
-		Id:randomutil.GetSnowFlakeId(NODE),
+		Id:randomutil.GetSnowFlakeId(UNIQUE_ID),
 		UserId:USER_ID,
 		Subject:subject,
 		TradeNo:tradeNo,
@@ -207,13 +229,14 @@ func PayOverHandler(response route.RouteResponse, request route.RouteRequest){
 			defer session.Close()
 			c1:=session.DB(mgosess.DB).C(model.TradeCol)
 			tradeNo:=noti.OutTradeNo
+			log.Println("PayOverHandler ! tradeno is: ",tradeNo)
 
 			// update status to "pay success" , only one can access this program
 			selector:=bson.M{"$and":[]bson.M{{"tradeno":tradeNo},{"status":model.WAIT_TO_PAY}}}
 			update:=bson.M{"$set":bson.M{"status":model.PAY_SUCCESS,"finishtime":timeutil.Unix()}}
 			err:=c1.Update(selector,update)
 			if err!=nil {
-				log.Println("tradeno is : ",tradeNo," 更新失败")
+				log.Println("PayOverHandler Trade Update fail ! tradeno is: ",tradeNo," , err is: ",err)
 				//notifyAlipaySuccess(response)
 				return
 			}
@@ -231,12 +254,11 @@ func PayOverHandler(response route.RouteResponse, request route.RouteRequest){
 				selector:=bson.M{"$and":[]bson.M{{"tradeno":tradeNo},{"status":model.PAY_SUCCESS}}}
 				update:=bson.M{"$set":bson.M{"status":model.WAIT_TO_PAY,"finishtime":""}}
 				c1.Update(selector,update)
-				log.Println("tradeno is : ",tradeNo," , userid is : ",trade.UserId," 更新失败")
+				log.Println("PayOverHandler User Update fail ! tradeno is: ",tradeNo," , userid is: ",trade.UserId," , err is: ",err)
 				return
 			}
-			log.Println("tradeno is : ",tradeNo," - 支付成功")
 			notifyAlipaySuccess(response)
-			return
+			log.Println("PayOverHandler pay success ! tradeno is: ",tradeNo," , userid is: ",trade.UserId)
 
 		}
 	}

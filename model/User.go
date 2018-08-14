@@ -1,7 +1,7 @@
 package model
 
 type User struct {
-	Id string `bson:id`
+	Id int64 `bson:id`
 	Name string `bson:name`
 	Money float64 `bson:money`
 }

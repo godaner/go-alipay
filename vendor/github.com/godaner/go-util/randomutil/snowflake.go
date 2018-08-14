@@ -14,9 +14,13 @@ func GetSnowFlakeId(randomId int64) int64 {
 	return id.Int64()
 }
 
+func GetSnowFlakeIdStr(uniqueId int64) string {
 
-func getSnowFlake(randomId int64) {
-	node1, err := snowflake.NewNode(int64(randomId))
+	return fmt.Sprintf("%d", GetSnowFlakeId(uniqueId))
+}
+
+func getSnowFlake(uniqueId int64) {
+	node1, err := snowflake.NewNode(int64(uniqueId))
 	if err != nil {
 		fmt.Println(err)
 		return

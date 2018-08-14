@@ -19,7 +19,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:42319e22a2b7d23b9b3be1a0fec79e1fed2802fd590df496089f9ea021183368"
+  digest = "1:b60934bf14a81922074f4255ee2ecda7ab4774c104a29d675e1de5948889e557"
   name = "github.com/godaner/go-util"
   packages = [
     "httputil",
@@ -27,7 +27,7 @@
     "timeutil",
   ]
   pruneopts = "UT"
-  revision = "b5a3b96b4be90a1d9c6af48abbafe3a1b5a8b8d1"
+  revision = "11ef6814bde68a6e0585a6d3dc27f85356a5d39f"
 
 [[projects]]
   branch = "master"
@@ -43,14 +43,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:65bd6e284dee58872dcb9502aec2ae172603cf2814d1874b7650621259955244"
+  digest = "1:205cd2534f22918f25bf420cef34073b3a64947c23ed429dfdfe696929d37432"
   name = "github.com/smartwalle/alipay"
   packages = [
     ".",
     "encoding",
   ]
   pruneopts = "UT"
-  revision = "d547e14698f2c5a210e052738f9ce1649880a07f"
+  revision = "5aaecfba32cffedf1b3536adf703de7fa9f1ec3e"
 
 [[projects]]
   branch = "v2"
