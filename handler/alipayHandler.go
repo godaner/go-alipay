@@ -4,6 +4,7 @@ import (
 	"github.com/godaner/go-route/route"
 	"github.com/smartwalle/alipay"
 	"github.com/godaner/go-util/httputil"
+	"github.com/godaner/go-util/randomutil"
 	"go-alipay/mgosess"
 	"go-alipay/model"
 	"log"
@@ -17,12 +18,14 @@ const(
 	APP_ID="2016081500252906"
 	PARTNER_ID="2088102171304735"
 	PUBLIC_KEY="MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtztDI8yGwWyEicfCS15dKJMoL3MuuQxuZdnFwPLgnC94xbQ3xMDSkcRucNhDqF1rgxn2cGnj8maJ1s5K4UIlN7YnUe0RAQ+ZORcjAOPncc5uNdEBPsuv6uvF1Vvet7re9DtFNLL5Sv09gbim1mdykOtCmDhikgXxUMo4arRc+Mj+Ax5V4qeZHcqZKYBxUZ2yB0FsMRYY2zHS6pfOA0Zlw/Jp53+FISWwMiMkr/R0iL/N89ouTTDd0Uswl7ynTCRsy8k/IdxSSMCLgTEhhRQJk+d1MAn8MpLQ3syFtmmr7MwcusMbWGY+DI2YvvA8COcuywaBLbROsA0U/F/uhgsYDwIDAQAB"
-	PRIVATE_KEY="MIIEpAIBAAKCAQEA3NvjiANKofzgB/G32qBzpxMCv+LeA385GgkgsSb32eqGkQ0z4+/xKOJD1HNbcw9A1GlFOBkd3gtPpRqXNg1UzrbbfD20GGKgWxvvu59wWX7+yGv1VZxd4Ned/bsqt/Ehiae9Uzzu+QdT7LkpToDyFpbpmlUDFtU8eVRjooFwrhjuiHQDCQvxgfJQFr6Wgev2zJuOAhbZPKr1q6hU0Vwp+M/KEcJ0H6y3ME2nq2y3UHI/uVWxlzIFKUhUOeHzwU6njlGZVpxSWAGO4PR94D1FjauXHVT3VYmkho1lBMX/atGH50dztpZCNmuASTICXm7QzQNjoytc3Inz7f2IiY/6ZQIDAQABAoIBAQDTlNQlOQIGrXryIV9A0vX42P2JVo3aS8coahYnoG1RFpxT2ZIci4E86YaRwPGbCMHSvAbT9zvlvHBQe2jhH2RfpE4gd/xQYCu/HMRNujCnjEIJP2OI4IQPIoD40pXaIec/OLLnSzik2aBM6BXqXx2NBoZEk6yh8yY8FdxdkiOgo/mON1uyZiHqKlQ80KHHFlO+j4uoyvWvcZDBa/2rZNixPyfKjqxQY+Z1AQP0F7KrVHGCIYbNGazGmeUKjTegKTKSCJW5OvQlz7NKcyX77CLdWJDw+tTE98gpUiLFzWoJwVAZUeuw3zdzRzQeP1KvN6y1l4XXvLgryCmCpHWNSzABAoGBAPubyVhS3FKrhMKF8iYSlQdFYQ1DC01SFINV7HChG1OxT3e6d1FCj2mf4A5cT67axMqu35+MWzv188Tnb+BE9MTi17X4anvkZVzyNQIZwXX4li+Aswuj528HeCerq096sV06eGxYRMOELy3RzsjyAbu5ExDPLGLxQ1yebr2W2q4xAoGBAOC2tbeW3RMolHE4919gPHgvZxXI3omXLpWeCFsXD3/P4pnNzrJDmtx3vLKqmNSEQyEuZVUt75oYr3TREP2kJNWkMGWUJSBuHURaoMD/j0HX6FTIr7pfpD476NPSxnaxlHLaE6PulXDKP9CeD4Smk9nqsKsZqVEsxl+uwCVMNr51AoGAKY4pSvUkfmLlolsNC0y2YGUNCmuwSizsRmTCkDeLk98NCPE7E6iylvdYwgZtAqwPJIqNVISR7O1KPZMb3yaEZqAwkFVfAOdP9nHqX1ZxpVJRO7c92wZPCv9o0OSBfrb85DDsArjxYnlKcX7dcELIFoESrQwKgKzoOzvPfnCT3YECgYAyTdSKH7SnyErKudTuve1rfjkWcFwY8wYTqkf2lEf89b2lbqQZ1faB6jAM0xHZaS5Z7Df1BI6BsYr9nJuwHCG+zb2jz7Er/FqC5cLc0ZjxRXMWH8Lu9uAeqmyplqKlCYXQ3C7PYOaFVFFK00doC55Hhzk7ZEg6Csrxun37G3+ZzQKBgQCpmYiICnFz6D8FvRB+R1kaMxhmq3NXFTBRH+8uazfYf2q38o/X5CyEpElqT5oyW8LMthAxnganCgr9qnHx5+T0yDdE4JkiE4tsaJKtB0jUjvVJllr46VK20faPqhPAKm40sP63yqC6qIvvNByq0aFNc5r+iuSOweY1If9Z+ssOmw=="
-	RETURN_URL="http://zk.godaner.link/alipay/payReturn"
-	NOTIFY_URL="http://zk.godaner.link/alipay/payNotify"
-	PRODUCT_CODE="FAST_INSTANT_TRADE_PAY"
-	IS_PRODUCTION=false
-	TRADE_SUCCESS="TRADE_SUCCESS"
+	PRIVATE_KEY   ="MIIEpAIBAAKCAQEA3NvjiANKofzgB/G32qBzpxMCv+LeA385GgkgsSb32eqGkQ0z4+/xKOJD1HNbcw9A1GlFOBkd3gtPpRqXNg1UzrbbfD20GGKgWxvvu59wWX7+yGv1VZxd4Ned/bsqt/Ehiae9Uzzu+QdT7LkpToDyFpbpmlUDFtU8eVRjooFwrhjuiHQDCQvxgfJQFr6Wgev2zJuOAhbZPKr1q6hU0Vwp+M/KEcJ0H6y3ME2nq2y3UHI/uVWxlzIFKUhUOeHzwU6njlGZVpxSWAGO4PR94D1FjauXHVT3VYmkho1lBMX/atGH50dztpZCNmuASTICXm7QzQNjoytc3Inz7f2IiY/6ZQIDAQABAoIBAQDTlNQlOQIGrXryIV9A0vX42P2JVo3aS8coahYnoG1RFpxT2ZIci4E86YaRwPGbCMHSvAbT9zvlvHBQe2jhH2RfpE4gd/xQYCu/HMRNujCnjEIJP2OI4IQPIoD40pXaIec/OLLnSzik2aBM6BXqXx2NBoZEk6yh8yY8FdxdkiOgo/mON1uyZiHqKlQ80KHHFlO+j4uoyvWvcZDBa/2rZNixPyfKjqxQY+Z1AQP0F7KrVHGCIYbNGazGmeUKjTegKTKSCJW5OvQlz7NKcyX77CLdWJDw+tTE98gpUiLFzWoJwVAZUeuw3zdzRzQeP1KvN6y1l4XXvLgryCmCpHWNSzABAoGBAPubyVhS3FKrhMKF8iYSlQdFYQ1DC01SFINV7HChG1OxT3e6d1FCj2mf4A5cT67axMqu35+MWzv188Tnb+BE9MTi17X4anvkZVzyNQIZwXX4li+Aswuj528HeCerq096sV06eGxYRMOELy3RzsjyAbu5ExDPLGLxQ1yebr2W2q4xAoGBAOC2tbeW3RMolHE4919gPHgvZxXI3omXLpWeCFsXD3/P4pnNzrJDmtx3vLKqmNSEQyEuZVUt75oYr3TREP2kJNWkMGWUJSBuHURaoMD/j0HX6FTIr7pfpD476NPSxnaxlHLaE6PulXDKP9CeD4Smk9nqsKsZqVEsxl+uwCVMNr51AoGAKY4pSvUkfmLlolsNC0y2YGUNCmuwSizsRmTCkDeLk98NCPE7E6iylvdYwgZtAqwPJIqNVISR7O1KPZMb3yaEZqAwkFVfAOdP9nHqX1ZxpVJRO7c92wZPCv9o0OSBfrb85DDsArjxYnlKcX7dcELIFoESrQwKgKzoOzvPfnCT3YECgYAyTdSKH7SnyErKudTuve1rfjkWcFwY8wYTqkf2lEf89b2lbqQZ1faB6jAM0xHZaS5Z7Df1BI6BsYr9nJuwHCG+zb2jz7Er/FqC5cLc0ZjxRXMWH8Lu9uAeqmyplqKlCYXQ3C7PYOaFVFFK00doC55Hhzk7ZEg6Csrxun37G3+ZzQKBgQCpmYiICnFz6D8FvRB+R1kaMxhmq3NXFTBRH+8uazfYf2q38o/X5CyEpElqT5oyW8LMthAxnganCgr9qnHx5+T0yDdE4JkiE4tsaJKtB0jUjvVJllr46VK20faPqhPAKm40sP63yqC6qIvvNByq0aFNc5r+iuSOweY1If9Z+ssOmw=="
+	RETURN_URL    ="http://zk.godaner.link/alipay/payReturn"
+	NOTIFY_URL    ="http://zk.godaner.link/alipay/payNotify"
+	PRODUCT_CODE  ="FAST_INSTANT_TRADE_PAY"
+	IS_PRODUCTION =false
+	TRADE_SUCCESS ="TRADE_SUCCESS"
+	USER_ID       =1
+	NODE          =1
 )
 //alipay client
 var client = alipay.New(APP_ID, PARTNER_ID, PUBLIC_KEY, PRIVATE_KEY, IS_PRODUCTION)
@@ -32,7 +35,7 @@ var client = alipay.New(APP_ID, PARTNER_ID, PUBLIC_KEY, PRIVATE_KEY, IS_PRODUCTI
 func MobilePayHandler(response route.RouteResponse, request route.RouteRequest) {
 	//var
 	subject:=request.Params["subject"].(string)
-	tradeNo:= timeutil.UnixStr()
+	tradeNo:= string(randomutil.GetSnowFlakeId(NODE))
 	amount:=request.Params["amount"].(string)
 	//param
 	var p = alipay.AliPayTradeWapPay{} //mobile wap page , it will try to open alipay app
@@ -56,10 +59,12 @@ func MobilePayHandler(response route.RouteResponse, request route.RouteRequest) 
 	session:=mgosess.OpenSession()
 	c:=session.DB(mgosess.DB).C(model.TradeCol)
 	c.Insert(model.Trade{
+		Id:randomutil.GetSnowFlakeId(NODE),
+		UserId:USER_ID,
 		Subject:subject,
 		TradeNo:tradeNo,
 		Amount:amount,
-		Status:model.UN_FINISH,
+		Status:model.WAIT_TO_PAY,
 		CreateTime:timeutil.Unix(),
 	})
 	//res
@@ -97,10 +102,12 @@ func QrPayHandler(response route.RouteResponse, request route.RouteRequest) {
 	session:=mgosess.OpenSession()
 	c:=session.DB(mgosess.DB).C(model.TradeCol)
 	c.Insert(model.Trade{
+		Id:randomutil.GetSnowFlakeId(NODE),
+		UserId:USER_ID,
 		Subject:subject,
 		TradeNo:tradeNo,
 		Amount:amount,
-		Status:model.UN_FINISH,
+		Status:model.WAIT_TO_PAY,
 		CreateTime:timeutil.Unix(),
 	})
 	//res
@@ -147,10 +154,12 @@ func PcPayHandler(response route.RouteResponse, request route.RouteRequest) {
 	session:=mgosess.OpenSession()
 	c:=session.DB(mgosess.DB).C(model.TradeCol)
 	c.Insert(model.Trade{
+		Id:randomutil.GetSnowFlakeId(NODE),
+		UserId:USER_ID,
 		Subject:subject,
 		TradeNo:tradeNo,
 		Amount:amount,
-		Status:model.UN_FINISH,
+		Status:model.WAIT_TO_PAY,
 		CreateTime:timeutil.Unix(),
 	})
 	//res
@@ -183,37 +192,58 @@ func PayNotifyHandler(response route.RouteResponse, request route.RouteRequest) 
 func PayReturnHandler(response route.RouteResponse, request route.RouteRequest) {
 	PayOverHandler(response,request)
 }
+
+//when pay success , alipay will call this func
 func PayOverHandler(response route.RouteResponse, request route.RouteRequest){
 
 	// verify sign
 	var noti, _ = client.GetTradeNotification(request.Request)
 	// handler service
 	if noti!=nil{
-
+		//pay success?
 		if noti.TradeStatus == TRADE_SUCCESS {
 
 			session:=mgosess.OpenSession()
-			c:=session.DB(mgosess.DB).C(model.TradeCol)
-
+			defer session.Close()
+			c1:=session.DB(mgosess.DB).C(model.TradeCol)
 			tradeNo:=noti.OutTradeNo
-			// exits
+
+			// update status to "pay success" , only one can access this program
+			selector:=bson.M{"$and":[]bson.M{{"tradeno":tradeNo},{"status":model.WAIT_TO_PAY}}}
+			update:=bson.M{"$set":bson.M{"status":model.PAY_SUCCESS,"finishtime":timeutil.Unix()}}
+			err:=c1.Update(selector,update)
+			if err!=nil {
+				log.Println("tradeno is : ",tradeNo," 更新失败")
+				//notifyAlipaySuccess(response)
+				return
+			}
+
+			//add money to user
 			trade := &model.Trade{}
-			c.Find(bson.M{"tradeno":tradeNo}).One(trade)
-			if trade==nil {
-				log.Println("tradeno is : ",tradeNo," 不存在")
+			c1.Find(bson.M{"tradeno":tradeNo}).One(trade)
+
+			c2:=session.DB(mgosess.DB).C(model.UserCol)
+			selector=bson.M{"id":trade.UserId}
+			update=bson.M{"$inc":bson.M{"money":trade.Amount}}
+			err=c2.Update(selector,update)
+			//if update user fail
+			if err!=nil {
+				selector:=bson.M{"$and":[]bson.M{{"tradeno":tradeNo},{"status":model.PAY_SUCCESS}}}
+				update:=bson.M{"$set":bson.M{"status":model.WAIT_TO_PAY,"finishtime":""}}
+				c1.Update(selector,update)
+				log.Println("tradeno is : ",tradeNo," , userid is : ",trade.UserId," 更新失败")
 				return
 			}
-			if trade.Status != model.UN_FINISH {
-				log.Println("tradeno is : ",tradeNo," 已经结束")
-				return
-			}
-			// update
-			c.Update(bson.M{"tradeno":tradeNo},bson.M{"$set":bson.M{"status":model.SUCCESS}})
 			log.Println("tradeno is : ",tradeNo," - 支付成功")
-			response.ResponseWriter.Write([]byte("success"))
+			notifyAlipaySuccess(response)
+			return
+
 		}
 	}
 
 
 
+}
+func notifyAlipaySuccess(response route.RouteResponse){
+	response.ResponseWriter.Write([]byte("success"))
 }

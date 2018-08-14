@@ -3,6 +3,14 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:ca1bfe03324601a4bd42482a331449c5f387ac014376b55515910ec3295ea15c"
+  name = "github.com/bwmarrin/snowflake"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "68117e6bbede4dd72d70c7a58d73348ead068509"
+
+[[projects]]
+  branch = "master"
   digest = "1:228a03a679f6169421993167e028f9e157a9f4b026b943c835a804ed1f5bd28f"
   name = "github.com/godaner/go-route"
   packages = ["route"]
@@ -11,10 +19,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:9b79bd952eb1a7948549b938b94dc561699cfd996806d913d28f0b5359b17a82"
+  digest = "1:42319e22a2b7d23b9b3be1a0fec79e1fed2802fd590df496089f9ea021183368"
   name = "github.com/godaner/go-util"
   packages = [
     "httputil",
+    "randomutil",
     "timeutil",
   ]
   pruneopts = "UT"
@@ -63,6 +72,7 @@
   input-imports = [
     "github.com/godaner/go-route/route",
     "github.com/godaner/go-util/httputil",
+    "github.com/godaner/go-util/randomutil",
     "github.com/godaner/go-util/timeutil",
     "github.com/skip2/go-qrcode",
     "github.com/smartwalle/alipay",
