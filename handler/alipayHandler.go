@@ -60,6 +60,7 @@ func MobilePayHandler(response route.RouteResponse, request route.RouteRequest) 
 		TradeNo:tradeNo,
 		Amount:amount,
 		Status:model.UN_FINISH,
+		CreateTime:timeutil.Unix(),
 	})
 	//res
 	var payURL = url.String()
@@ -100,6 +101,7 @@ func QrPayHandler(response route.RouteResponse, request route.RouteRequest) {
 		TradeNo:tradeNo,
 		Amount:amount,
 		Status:model.UN_FINISH,
+		CreateTime:timeutil.Unix(),
 	})
 	//res
 	var qrCode = results.AliPayPreCreateResponse.QRCode
@@ -149,6 +151,7 @@ func PcPayHandler(response route.RouteResponse, request route.RouteRequest) {
 		TradeNo:tradeNo,
 		Amount:amount,
 		Status:model.UN_FINISH,
+		CreateTime:timeutil.Unix(),
 	})
 	//res
 	var payURL = url.String()

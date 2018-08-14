@@ -9,6 +9,7 @@ type Trade struct {
 	Subject string	`bson:subject`
 	TradeNo string	`bson:tradeno`
 	Amount string	`bson:amount`
+	CreateTime int64 `bson:createtime`
 	Status uint8	`bson:status`
 }
 
