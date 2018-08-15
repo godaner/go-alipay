@@ -24,7 +24,6 @@ const(
 	NOTIFY_URL    ="http://zk.godaner.link/alipay/payNotify"
 	PRODUCT_CODE  ="FAST_INSTANT_TRADE_PAY"
 	IS_PRODUCTION =false
-	TRADE_SUCCESS ="TRADE_SUCCESS"
 	USER_ID =1
 	UNIQUE_ID =1
 )
@@ -82,7 +81,7 @@ func MobilePayHandler(response route.RouteResponse, request route.RouteRequest) 
 		Subject:subject,
 		TradeNo:tradeNo,
 		Amount:amount,
-		Status:model.WAIT_TO_PAY,
+		Status:model.TRADE_STATUS_WAIT_BUYER_PAY,
 		CreateTime:timeutil.Unix(),
 	})
 	//res
@@ -127,7 +126,7 @@ func QrPayHandler(response route.RouteResponse, request route.RouteRequest) {
 		Subject:subject,
 		TradeNo:tradeNo,
 		Amount:amount,
-		Status:model.WAIT_TO_PAY,
+		Status:model.TRADE_STATUS_WAIT_BUYER_PAY,
 		CreateTime:timeutil.Unix(),
 	})
 	//res
@@ -181,7 +180,7 @@ func PcPayHandler(response route.RouteResponse, request route.RouteRequest) {
 		Subject:subject,
 		TradeNo:tradeNo,
 		Amount:amount,
-		Status:model.WAIT_TO_PAY,
+		Status:model.TRADE_STATUS_WAIT_BUYER_PAY,
 		CreateTime:timeutil.Unix(),
 	})
 	//res
@@ -222,18 +221,18 @@ func PayOverHandler(response route.RouteResponse, request route.RouteRequest){
 	var noti, _ = client.GetTradeNotification(request.Request)
 	// handler service
 	if noti!=nil{
+		tradeNo:=noti.OutTradeNo
+		log.Println("PayOverHandler ! tradeno is: ",tradeNo)
 		//pay success?
-		if noti.TradeStatus == TRADE_SUCCESS {
+		if noti.TradeStatus == alipay.K_TRADE_STATUS_TRADE_SUCCESS {
 
 			session:=mgosess.OpenSession()
 			defer session.Close()
 			c1:=session.DB(mgosess.DB).C(model.TradeCol)
-			tradeNo:=noti.OutTradeNo
-			log.Println("PayOverHandler ! tradeno is: ",tradeNo)
 
 			// update status to "pay success" , only one can access this program
-			selector:=bson.M{"$and":[]bson.M{{"tradeno":tradeNo},{"status":model.WAIT_TO_PAY}}}
-			update:=bson.M{"$set":bson.M{"status":model.PAY_SUCCESS,"finishtime":timeutil.Unix()}}
+			selector:=bson.M{"$and":[]bson.M{{"tradeno":tradeNo},{"status":model.TRADE_STATUS_WAIT_BUYER_PAY}}}
+			update:=bson.M{"$set":bson.M{"status":model.TRADE_STATUS_TRADE_SUCCESS,"finishtime":timeutil.Unix()}}
 			err:=c1.Update(selector,update)
 			if err!=nil {
 				log.Println("PayOverHandler Trade Update fail ! tradeno is: ",tradeNo," , err is: ",err)
@@ -251,8 +250,8 @@ func PayOverHandler(response route.RouteResponse, request route.RouteRequest){
 			err=c2.Update(selector,update)
 			//if update user fail
 			if err!=nil {
-				selector:=bson.M{"$and":[]bson.M{{"tradeno":tradeNo},{"status":model.PAY_SUCCESS}}}
-				update:=bson.M{"$set":bson.M{"status":model.WAIT_TO_PAY,"finishtime":""}}
+				selector:=bson.M{"$and":[]bson.M{{"tradeno":tradeNo},{"status":model.TRADE_STATUS_TRADE_SUCCESS}}}
+				update:=bson.M{"$set":bson.M{"status":model.TRADE_STATUS_WAIT_BUYER_PAY,"finishtime":""}}
 				c1.Update(selector,update)
 				log.Println("PayOverHandler User Update fail ! tradeno is: ",tradeNo," , userid is: ",trade.UserId," , err is: ",err)
 				return
