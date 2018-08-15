@@ -6,6 +6,8 @@ const (
 	TRADE_STATUS_TRADE_SUCCESS  = 3  //（交易支付成功）
 	TRADE_STATUS_TRADE_FINISHED = 4 //（交易结束，不可退款）
 )
+
+
 type Trade struct {
 	Id int64 `bson:id`
 	UserId int64 `bson:userid`

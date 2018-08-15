@@ -30,22 +30,7 @@ const(
 )
 //alipay client
 var client = alipay.New(APP_ID, PARTNER_ID, PUBLIC_KEY, PRIVATE_KEY, IS_PRODUCTION)
-func init(){
-	session:=mgosess.OpenSession()
-	defer session.Close()
-	c2:=session.DB(mgosess.DB).C(model.UserCol)
-	query:=bson.M{"id":USER_ID}
-	q:=c2.Find(query)
-	if n,_ :=q.Count();n == 0{
-		u:=model.User{
-			Id:USER_ID,
-			Name:"zk",
-			Money:0,
-		}
-		c2.Insert(u)
-		log.Println("init insert default user : ",u)
-	}
-}
+
 //mobile wap page , it will try to open alipay app
 //url like: http://localhost/alipay/pay/mobile?subject=支付午餐&amount=10000
 func MobilePayHandler(response route.RouteResponse, request route.RouteRequest) {
@@ -223,7 +208,7 @@ func PayOverHandler(response route.RouteResponse, request route.RouteRequest){
 	// handler service
 	if noti!=nil{
 		tradeNo:=noti.OutTradeNo
-		log.Println("PayOverHandler ! tradeno is: ",tradeNo)
+		log.Println("PayOverHandler start ! tradeno is: ",tradeNo)
 		//pay success?
 		if noti.TradeStatus == alipay.K_TRADE_STATUS_TRADE_SUCCESS {
 
@@ -237,28 +222,10 @@ func PayOverHandler(response route.RouteResponse, request route.RouteRequest){
 			err:=c1.Update(selector,update)
 			if err!=nil {
 				log.Println("PayOverHandler Trade Update fail ! tradeno is: ",tradeNo," , err is: ",err)
-				//notifyAlipaySuccess(response)
-				return
-			}
-
-			//add money to user
-			trade := &model.Trade{}
-			c1.Find(bson.M{"tradeno":tradeNo}).One(trade)
-
-			c2:=session.DB(mgosess.DB).C(model.UserCol)
-			selector=bson.M{"id":trade.UserId}
-			update=bson.M{"$inc":bson.M{"money":trade.Amount}}
-			err=c2.Update(selector,update)
-			//if update user fail
-			if err!=nil {
-				selector:=bson.M{"$and":[]bson.M{{"tradeno":tradeNo},{"status":model.TRADE_STATUS_TRADE_SUCCESS}}}
-				update:=bson.M{"$set":bson.M{"status":model.TRADE_STATUS_WAIT_BUYER_PAY,"finishtime":""}}
-				c1.Update(selector,update)
-				log.Println("PayOverHandler User Update fail ! tradeno is: ",tradeNo," , userid is: ",trade.UserId," , err is: ",err)
 				return
 			}
 			notifyAlipaySuccess(response)
-			log.Println("PayOverHandler pay success ! tradeno is: ",tradeNo," , userid is: ",trade.UserId)
+			log.Println("PayOverHandler pay success ! tradeno is: ",tradeNo)
 
 		}
 	}
