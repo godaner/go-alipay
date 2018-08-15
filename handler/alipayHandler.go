@@ -61,10 +61,6 @@ func checkUnSuccessTrade() {
 						continue
 					}
 					log.Println("checkUnSuccessTrade trade is success , status syncing ! tradeNo is : ",tradeNo)
-				}else if results.AliPayTradeQuery.TradeStatus == alipay.K_TRADE_STATUS_TRADE_CLOSED{
-					selector=bson.M{"tradeno":tradeNo}
-					c.Remove(selector)
-					log.Println("checkUnSuccessTrade trade is close , remove trade ! tradeNo is : ",tradeNo)
 				}
 			}
 
