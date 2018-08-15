@@ -37,7 +37,7 @@ func init(){
 	checkUnSuccessTrade()
 }
 func checkUnSuccessTrade() {
-	ticker := time.NewTicker(time.Second * 1)
+	ticker := time.NewTicker(time.Second * 10)
 	go func() {
 		session:=mgosess.OpenSession()
 		defer session.Close()
@@ -56,6 +56,7 @@ func checkUnSuccessTrade() {
 					log.Println("checkUnSuccessTrade TradeQuery error ! tradeno is: ",tradeNo," , err is: ",err)
 					continue
 				}
+				//log.Println("checkUnSuccessTrade get trade status ! tradeno is: ",tradeNo," , trade status is: ",results.AliPayTradeQuery.TradeStatus)
 				if results.AliPayTradeQuery.TradeStatus == alipay.K_TRADE_STATUS_TRADE_SUCCESS {
 					err:=updateTradeSuccess(c,tradeNo,results.AliPayTradeQuery.TotalAmount,PARTNER_ID)
 					if err!=nil {
