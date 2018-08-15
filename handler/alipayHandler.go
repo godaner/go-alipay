@@ -13,6 +13,8 @@ import (
 	"fmt"
 	"gopkg.in/mgo.v2/bson"
 	"strconv"
+	"time"
+	"gopkg.in/mgo.v2"
 )
 
 const(
@@ -28,8 +30,43 @@ const(
 	USER_ID =1
 	UNIQUE_ID =1
 )
+
 //alipay client
 var client = alipay.New(APP_ID, PARTNER_ID, PUBLIC_KEY, PRIVATE_KEY, IS_PRODUCTION)
+func init(){
+	checkUnSuccessTrade()
+}
+func checkUnSuccessTrade() {
+	ticker := time.NewTicker(time.Second * 3)
+	go func() {
+		session:=mgosess.OpenSession()
+		defer session.Close()
+		c:=session.DB(mgosess.DB).C(model.TradeCol)
+		for _ = range ticker.C {
+			selector:=bson.M{"status":model.TRADE_STATUS_WAIT_BUYER_PAY}
+			trades:=make([]model.Trade,0,0)
+			c.Find(selector).All(&trades)
+			for _,trade:=range trades{
+				tradeNo:=trade.TradeNo
+				var p = alipay.AliPayTradeQuery{} //mobile wap page , it will try to open alipay app
+				p.OutTradeNo = tradeNo
+				results,_:=client.TradeQuery(p)
+
+				log.Println("checkUnSuccessTrade res is : ",results)
+				if results.AliPayTradeQuery.TradeStatus == alipay.K_TRADE_STATUS_TRADE_SUCCESS {
+					err:=updateTradeSuccess(c,tradeNo)
+					if err!=nil {
+						log.Println("checkUnSuccessTrade Trade Update fail ! tradeno is: ",tradeNo," , err is: ",err)
+						continue
+					}
+					log.Println("checkUnSuccessTrade trade is success , status syncing ! tradeNo is : ",tradeNo)
+				}
+			}
+
+		}
+	}()
+}
+
 
 //mobile wap page , it will try to open alipay app
 //url like: http://localhost/alipay/pay/mobile?subject=支付午餐&amount=10000
@@ -202,7 +239,6 @@ func PayReturnHandler(response route.RouteResponse, request route.RouteRequest) 
 
 //when pay success , alipay will call this func
 func PayOverHandler(response route.RouteResponse, request route.RouteRequest){
-
 	// verify sign
 	var noti, _ = client.GetTradeNotification(request.Request)
 	// handler service
@@ -214,12 +250,10 @@ func PayOverHandler(response route.RouteResponse, request route.RouteRequest){
 
 			session:=mgosess.OpenSession()
 			defer session.Close()
-			c1:=session.DB(mgosess.DB).C(model.TradeCol)
+			c:=session.DB(mgosess.DB).C(model.TradeCol)
 
 			// update status to "pay success" , only one can access this program
-			selector:=bson.M{"$and":[]bson.M{{"tradeno":tradeNo},{"status":model.TRADE_STATUS_WAIT_BUYER_PAY}}}
-			update:=bson.M{"$set":bson.M{"status":model.TRADE_STATUS_TRADE_SUCCESS,"finishtime":timeutil.Unix()}}
-			err:=c1.Update(selector,update)
+			err:=updateTradeSuccess(c,tradeNo)
 			if err!=nil {
 				log.Println("PayOverHandler Trade Update fail ! tradeno is: ",tradeNo," , err is: ",err)
 				return
@@ -231,7 +265,11 @@ func PayOverHandler(response route.RouteResponse, request route.RouteRequest){
 	}
 
 
-
+}
+func updateTradeSuccess(c *mgo.Collection,tradeNo string)(error){
+	selector:=bson.M{"$and":[]bson.M{{"tradeno":tradeNo},{"status":model.TRADE_STATUS_WAIT_BUYER_PAY}}}
+	update:=bson.M{"$set":bson.M{"status":model.TRADE_STATUS_TRADE_SUCCESS,"finishtime":timeutil.Unix()}}
+	return c.Update(selector,update)
 }
 func notifyAlipaySuccess(response route.RouteResponse){
 	response.ResponseWriter.Write([]byte("success"))
