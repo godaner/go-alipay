@@ -252,6 +252,22 @@ func PayOverHandler(response route.RouteResponse, request route.RouteRequest){
 			defer session.Close()
 			c:=session.DB(mgosess.DB).C(model.TradeCol)
 
+			selector:=bson.M{"tradeno":tradeNo}
+			q:=c.Find(selector)
+			//is exits ?
+			if n,_:=q.Count();n==0{
+				log.Println("PayOverHandler Trade is not exits ! tradeno is: ",tradeNo)
+				return
+			}
+			trade:=model.Trade{}
+			q.One(&trade)
+			//is success ?
+			if trade.Status== model.TRADE_STATUS_TRADE_SUCCESS {
+				log.Println("PayOverHandler trade have pay success ! tradeno is: ",tradeNo)
+				notifyAlipaySuccess(response)
+				return
+			}
+
 			// update status to "pay success" , only one can access this program
 			err:=updateTradeSuccess(c,tradeNo)
 			if err!=nil {
@@ -259,7 +275,7 @@ func PayOverHandler(response route.RouteResponse, request route.RouteRequest){
 				return
 			}
 			notifyAlipaySuccess(response)
-			log.Println("PayOverHandler pay success ! tradeno is: ",tradeNo)
+			log.Println("PayOverHandler trade pay success ! tradeno is: ",tradeNo)
 
 		}
 	}
