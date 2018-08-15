@@ -1,2 +1,2 @@
 # go-alipay
-利用golang调用alipay
+	How to call alipay api ?  
