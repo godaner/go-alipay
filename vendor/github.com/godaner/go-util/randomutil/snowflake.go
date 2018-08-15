@@ -5,22 +5,22 @@ import (
 	"fmt"
 )
 
-//diff randomId will produce never same snow flake id
-func GetSnowFlakeId(randomId int64) int64 {
+//diff workMachineId will produce never same snow flake id
+func GetSnowFlakeId(workMachineId int64) int64 {
 	once.Do(func() {
-		getSnowFlake(randomId)
+		getSnowFlake(workMachineId)
 	})
 	id := node.Generate()
 	return id.Int64()
 }
 
-func GetSnowFlakeIdStr(uniqueId int64) string {
+func GetSnowFlakeIdStr(workMachineId int64) string {
 
-	return fmt.Sprintf("%d", GetSnowFlakeId(uniqueId))
+	return fmt.Sprintf("%d", GetSnowFlakeId(workMachineId))
 }
 
-func getSnowFlake(uniqueId int64) {
-	node1, err := snowflake.NewNode(int64(uniqueId))
+func getSnowFlake(workMachineId int64) {
+	node1, err := snowflake.NewNode(workMachineId)
 	if err != nil {
 		fmt.Println(err)
 		return

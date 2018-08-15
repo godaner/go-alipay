@@ -19,7 +19,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:2cd29d341b906e912c5a9aad5560a9e30870491221741b139548906875f43031"
+  digest = "1:175ede57c60a0ef88f0851c006a04d5fcd77c40be1dc78c126e426b893911b79"
   name = "github.com/godaner/go-util"
   packages = [
     "httputil",
@@ -28,7 +28,7 @@
     "timeutil",
   ]
   pruneopts = "UT"
-  revision = "bd23f6558bc80e0757853ff649f970fd61be68cd"
+  revision = "887095255755dae3bec5c1af2cbdfd496f34f2f1"
 
 [[projects]]
   digest = "1:40e195917a951a8bf867cd05de2a46aaf1806c50cf92eebf4c16f78cd196f747"

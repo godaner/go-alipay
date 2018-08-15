@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"go-util/mathutil"
 )
 
 // Pattern used to parse hex string representation of the UUID.
@@ -72,6 +73,10 @@ func ParseUUID(s string) (UUID, error) {
 // String implements the Stringer interface for UUID.
 func (id UUID) String() string {
 	return string(id)
+}
+func (id UUID) Int64() int64 {
+	bs:=[]byte(string(id))
+	return mathutil.BytesToInt64(bs)
 }
 
 // MarshalJSON turns UUID into a json.Marshaller.
