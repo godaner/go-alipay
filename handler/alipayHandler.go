@@ -255,7 +255,7 @@ func PayOverHandler(response route.RouteResponse, request route.RouteRequest){
 	// handler service
 	if noti!=nil{
 		tradeNo:=noti.OutTradeNo
-		log.Println("PayOverHandler start ! tradeno is: ",tradeNo)
+		log.Println("PayOverHandler start ! tradeno is: ",tradeNo,", trade status is : ",noti.TradeStatus)
 		//pay success?
 		if noti.TradeStatus == alipay.K_TRADE_STATUS_TRADE_SUCCESS {
 
@@ -304,6 +304,6 @@ func updateTradeSuccess(c *mgo.Collection,tradeNo string,totalAmount string,part
 }
 func notifyAliPaySuccess(response route.RouteResponse){
 	i,err:=response.ResponseWriter.Write([]byte("success"))
-	log.Println("notifyAliPaySuccess finish ! i is : ",i," , err is : ",err)
+	log.Println("notifyAliPaySuccess notigy alipay finish ! len(notify) is : ",i," , err is : ",err)
 }
 
