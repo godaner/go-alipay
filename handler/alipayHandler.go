@@ -275,7 +275,7 @@ func PayOverHandler(response route.RouteResponse, request route.RouteRequest){
 			//is success ?
 			if trade.Status== model.TRADE_STATUS_TRADE_SUCCESS {
 				log.Println("PayOverHandler trade have pay success ! tradeno is: ",tradeNo)
-				notifyAlipaySuccess(response)
+				notifyAliPaySuccess(response)
 				return
 			}
 
@@ -285,7 +285,7 @@ func PayOverHandler(response route.RouteResponse, request route.RouteRequest){
 				log.Println("PayOverHandler Trade Update fail ! tradeno is: ",tradeNo," , err is: ",err)
 				return
 			}
-			notifyAlipaySuccess(response)
+			notifyAliPaySuccess(response)
 			log.Println("PayOverHandler trade pay success ! tradeno is: ",tradeNo)
 
 		}
@@ -302,7 +302,8 @@ func updateTradeSuccess(c *mgo.Collection,tradeNo string,totalAmount string,part
 	update:=bson.M{"$set":bson.M{"status":model.TRADE_STATUS_TRADE_SUCCESS,"finishtime":go_util.Unix()}}
 	return c.Update(selector,update)
 }
-func notifyAlipaySuccess(response route.RouteResponse){
-	response.ResponseWriter.Write([]byte("success"))
+func notifyAliPaySuccess(response route.RouteResponse){
+	i,err:=response.ResponseWriter.Write([]byte("success"))
+	log.Println("notifyAliPaySuccess finish ! i is : ",i," , err is : ",err)
 }
 
