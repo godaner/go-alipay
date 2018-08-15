@@ -1,4 +1,4 @@
-package mathutil
+package go_util
 
 import (
 	"fmt"

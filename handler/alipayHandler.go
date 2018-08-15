@@ -3,13 +3,9 @@ package handler
 import (
 	"github.com/godaner/go-route/route"
 	"github.com/smartwalle/alipay"
-	"github.com/godaner/go-util/httputil"
-	"github.com/godaner/go-util/randomutil"
-	"github.com/godaner/go-util/mathutil"
 	"go-alipay/mgosess"
 	"go-alipay/model"
 	"log"
-	"github.com/godaner/go-util/timeutil"
 	"github.com/skip2/go-qrcode"
 	"fmt"
 	"gopkg.in/mgo.v2/bson"
@@ -17,6 +13,7 @@ import (
 	"time"
 	"gopkg.in/mgo.v2"
 	"github.com/pkg/errors"
+	"github.com/godaner/go-util"
 )
 
 const(
@@ -79,10 +76,10 @@ func checkUnSuccessTrade() {
 func MobilePayHandler(response route.RouteResponse, request route.RouteRequest) {
 	//var
 	subject:=request.Params["subject"].(string)
-	tradeNo:= randomutil.GetSnowFlakeIdStr(UNIQUE_ID)
+	tradeNo:= go_util.GetSnowFlakeIdStr(UNIQUE_ID)
 	amountStr:= fmt.Sprintf("%s",request.Params["amount"])
 	amount,_:=strconv.ParseFloat(amountStr,64)
-	amount=mathutil.Round(amount,2)
+	amount=go_util.Round(amount,2)
 	amountStr=fmt.Sprintf("%.2f",amount)
 
 	//param
@@ -110,19 +107,19 @@ func MobilePayHandler(response route.RouteResponse, request route.RouteRequest) 
 	defer session.Close()
 	c:=session.DB(mgosess.DB).C(model.TradeCol)
 	c.Insert(model.Trade{
-		Id:randomutil.GetSnowFlakeId(UNIQUE_ID),
+		Id:go_util.GetSnowFlakeId(UNIQUE_ID),
 		UserId:USER_ID,
 		Subject:subject,
 		TradeNo:tradeNo,
 		Amount:amount,
 		Status:model.TRADE_STATUS_WAIT_BUYER_PAY,
-		CreateTime:timeutil.Unix(),
+		CreateTime:go_util.Unix(),
 	})
 	//res
 	var payURL = url.String()
 	log.Println("payURL is : " + payURL)
 
-	httputil.WriteTemplate(response.ResponseWriter,getForwardAlipayHtml(payURL))
+	go_util.WriteTemplate(response.ResponseWriter,getForwardAlipayHtml(payURL))
 
 }
 //qr pay
@@ -130,7 +127,7 @@ func QrPayHandler(response route.RouteResponse, request route.RouteRequest) {
 
 	//var
 	subject:=request.Params["subject"].(string)
-	tradeNo:= timeutil.UnixStr()
+	tradeNo:= go_util.UnixStr()
 	amountStr:= fmt.Sprintf("%s",request.Params["amount"])
 	amount,_:=strconv.ParseFloat(amountStr,64)
 	//param
@@ -157,13 +154,13 @@ func QrPayHandler(response route.RouteResponse, request route.RouteRequest) {
 	defer session.Close()
 	c:=session.DB(mgosess.DB).C(model.TradeCol)
 	c.Insert(model.Trade{
-		Id:randomutil.GetSnowFlakeId(UNIQUE_ID),
+		Id:go_util.GetSnowFlakeId(UNIQUE_ID),
 		UserId:USER_ID,
 		Subject:subject,
 		TradeNo:tradeNo,
 		Amount:amount,
 		Status:model.TRADE_STATUS_WAIT_BUYER_PAY,
-		CreateTime:timeutil.Unix(),
+		CreateTime:go_util.Unix(),
 	})
 	//res
 	var qrCode = results.AliPayPreCreateResponse.QRCode
@@ -185,7 +182,7 @@ func QrPayHandler(response route.RouteResponse, request route.RouteRequest) {
 func PcPayHandler(response route.RouteResponse, request route.RouteRequest) {
 	//var
 	subject:=request.Params["subject"].(string)
-	tradeNo:= timeutil.UnixStr()
+	tradeNo:= go_util.UnixStr()
 	amountStr:= fmt.Sprintf("%s",request.Params["amount"])
 	amount,_:=strconv.ParseFloat(amountStr,64)
 	//param
@@ -212,19 +209,19 @@ func PcPayHandler(response route.RouteResponse, request route.RouteRequest) {
 	defer session.Close()
 	c:=session.DB(mgosess.DB).C(model.TradeCol)
 	c.Insert(model.Trade{
-		Id:randomutil.GetSnowFlakeId(UNIQUE_ID),
+		Id:go_util.GetSnowFlakeId(UNIQUE_ID),
 		UserId:USER_ID,
 		Subject:subject,
 		TradeNo:tradeNo,
 		Amount:amount,
 		Status:model.TRADE_STATUS_WAIT_BUYER_PAY,
-		CreateTime:timeutil.Unix(),
+		CreateTime:go_util.Unix(),
 	})
 	//res
 	var payURL = url.String()
 	log.Println("payURL is : " + payURL)
 
-	httputil.WriteTemplate(response.ResponseWriter,getForwardAlipayHtml(payURL))
+	go_util.WriteTemplate(response.ResponseWriter,getForwardAlipayHtml(payURL))
 
 }
 
@@ -302,7 +299,7 @@ func updateTradeSuccess(c *mgo.Collection,tradeNo string,totalAmount string,part
 	}
 	amountFloat64,_:=strconv.ParseFloat(totalAmount,64)
 	selector:=bson.M{"$and":[]bson.M{{"tradeno":tradeNo},{"amount":amountFloat64},{"status":model.TRADE_STATUS_WAIT_BUYER_PAY}}}
-	update:=bson.M{"$set":bson.M{"status":model.TRADE_STATUS_TRADE_SUCCESS,"finishtime":timeutil.Unix()}}
+	update:=bson.M{"$set":bson.M{"status":model.TRADE_STATUS_TRADE_SUCCESS,"finishtime":go_util.Unix()}}
 	return c.Update(selector,update)
 }
 func notifyAlipaySuccess(response route.RouteResponse){

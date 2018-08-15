@@ -1,26 +1,53 @@
-// Copyright (c) 2014 - Max Ekman <max@looplab.se>
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-package randomutil
+package go_util
 
 import (
-	"crypto/rand"
-	"errors"
+	"math/rand"
+	"sync"
+	"github.com/bwmarrin/snowflake"
 	"fmt"
 	"regexp"
-	"go-util/mathutil"
+	"github.com/pkg/errors"
 )
+
+var (
+	node *snowflake.Node
+	once sync.Once
+)
+func RandomString(l int) string {
+	bytes := make([]byte, l)
+	for i := 0; i < l; i++ {
+		bytes[i] = byte(RandInt(65, 90))
+	}
+	return string(bytes)
+}
+func RandInt(min int, max int) int {
+	return min + rand.Intn(max-min)
+}
+
+
+//diff workMachineId will produce never same snow flake id
+func GetSnowFlakeId(workMachineId int64) int64 {
+	once.Do(func() {
+		getSnowFlake(workMachineId)
+	})
+	id := node.Generate()
+	return id.Int64()
+}
+
+func GetSnowFlakeIdStr(workMachineId int64) string {
+
+	return fmt.Sprintf("%d", GetSnowFlakeId(workMachineId))
+}
+
+func getSnowFlake(workMachineId int64) {
+	node1, err := snowflake.NewNode(workMachineId)
+	if err != nil {
+		fmt.Println(err)
+		return
+	} else {
+		node = node1
+	}
+}
 
 // Pattern used to parse hex string representation of the UUID.
 // FIXME: do something to consider both brackets at one time,
@@ -65,7 +92,7 @@ func NewUUID() UUID {
 func ParseUUID(s string) (UUID, error) {
 	md := re.FindStringSubmatch(s)
 	if md == nil {
-		return "", errors.New("Invalid UUID string")
+		return "", errors.Errorf("Invalid UUID string")
 	}
 	return UUID(fmt.Sprintf("%s-%s-%s-%s-%s", md[2], md[3], md[4], md[5], md[6])), nil
 }
@@ -76,7 +103,7 @@ func (id UUID) String() string {
 }
 func (id UUID) Int64() int64 {
 	bs:=[]byte(string(id))
-	return mathutil.BytesToInt64(bs)
+	return BytesToInt64(bs)
 }
 
 // MarshalJSON turns UUID into a json.Marshaller.

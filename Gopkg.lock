@@ -11,24 +11,19 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:228a03a679f6169421993167e028f9e157a9f4b026b943c835a804ed1f5bd28f"
+  digest = "1:bc093d75c1b37877e777540c794fa39bde3fcffa0980a13855388d04e78dffab"
   name = "github.com/godaner/go-route"
   packages = ["route"]
   pruneopts = "UT"
-  revision = "592fed4c378f8e813df0e6690979f8afaf870164"
+  revision = "8227dbd5be6d46046a9c524666ae8e3ca4859f71"
 
 [[projects]]
   branch = "master"
-  digest = "1:175ede57c60a0ef88f0851c006a04d5fcd77c40be1dc78c126e426b893911b79"
+  digest = "1:99f1bf07267daef7fe629cd4534e77ab41afa90f04714d15b74c0eb225db013e"
   name = "github.com/godaner/go-util"
-  packages = [
-    "httputil",
-    "mathutil",
-    "randomutil",
-    "timeutil",
-  ]
+  packages = ["."]
   pruneopts = "UT"
-  revision = "887095255755dae3bec5c1af2cbdfd496f34f2f1"
+  revision = "aad915851b1f2e3dbcfe2bd34d213d86a6a741a7"
 
 [[projects]]
   digest = "1:40e195917a951a8bf867cd05de2a46aaf1806c50cf92eebf4c16f78cd196f747"
@@ -80,10 +75,7 @@
   analyzer-version = 1
   input-imports = [
     "github.com/godaner/go-route/route",
-    "github.com/godaner/go-util/httputil",
-    "github.com/godaner/go-util/mathutil",
-    "github.com/godaner/go-util/randomutil",
-    "github.com/godaner/go-util/timeutil",
+    "github.com/godaner/go-util",
     "github.com/pkg/errors",
     "github.com/skip2/go-qrcode",
     "github.com/smartwalle/alipay",
