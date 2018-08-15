@@ -29,6 +29,7 @@ const(
 	NOTIFY_URL    ="http://zk.godaner.link/alipay/payNotify"
 	PRODUCT_CODE  ="FAST_INSTANT_TRADE_PAY"
 	IS_PRODUCTION =false
+	TIMEOUT_EXPRESS = "30m"//最晚付款时间
 	USER_ID =1
 	UNIQUE_ID =1
 )
@@ -39,7 +40,7 @@ func init(){
 	checkUnSuccessTrade()
 }
 func checkUnSuccessTrade() {
-	ticker := time.NewTicker(time.Second * 10)
+	ticker := time.NewTicker(time.Second * 1)
 	go func() {
 		session:=mgosess.OpenSession()
 		defer session.Close()
@@ -52,9 +53,12 @@ func checkUnSuccessTrade() {
 				tradeNo:=trade.TradeNo
 				var p = alipay.AliPayTradeQuery{} //mobile wap page , it will try to open alipay app
 				p.OutTradeNo = tradeNo
-				results,_:=client.TradeQuery(p)
+				results,err:=client.TradeQuery(p)
 
-				//log.Println("checkUnSuccessTrade res is : ",results)
+				if err!=nil {
+					log.Println("checkUnSuccessTrade TradeQuery error ! tradeno is: ",tradeNo," , err is: ",err)
+					continue
+				}
 				if results.AliPayTradeQuery.TradeStatus == alipay.K_TRADE_STATUS_TRADE_SUCCESS {
 					err:=updateTradeSuccess(c,tradeNo,results.AliPayTradeQuery.TotalAmount,PARTNER_ID)
 					if err!=nil {
@@ -90,6 +94,8 @@ func MobilePayHandler(response route.RouteResponse, request route.RouteRequest) 
 	p.OutTradeNo = tradeNo
 	p.TotalAmount = amountStr
 	p.ProductCode = PRODUCT_CODE
+	p.TimeoutExpress=TIMEOUT_EXPRESS
+
 
 	log.Println("treade is :" ,p)
 	//new trade
@@ -135,6 +141,8 @@ func QrPayHandler(response route.RouteResponse, request route.RouteRequest) {
 	p.Subject = subject
 	p.OutTradeNo = tradeNo
 	p.TotalAmount = amountStr
+	p.TimeoutExpress=TIMEOUT_EXPRESS
+
 
 	log.Println("treade is :" ,p)
 	//new trade
@@ -189,6 +197,7 @@ func PcPayHandler(response route.RouteResponse, request route.RouteRequest) {
 	p.OutTradeNo = tradeNo
 	p.TotalAmount = amountStr
 	p.ProductCode = PRODUCT_CODE
+	p.TimeoutExpress=TIMEOUT_EXPRESS
 
 	log.Println("treade is :" ,p)
 	//new trade
