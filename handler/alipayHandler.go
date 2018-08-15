@@ -5,6 +5,7 @@ import (
 	"github.com/smartwalle/alipay"
 	"github.com/godaner/go-util/httputil"
 	"github.com/godaner/go-util/randomutil"
+	"github.com/godaner/go-util/mathutil"
 	"go-alipay/mgosess"
 	"go-alipay/model"
 	"log"
@@ -77,7 +78,7 @@ func MobilePayHandler(response route.RouteResponse, request route.RouteRequest) 
 	tradeNo:= randomutil.GetSnowFlakeIdStr(UNIQUE_ID)
 	amountStr:= fmt.Sprintf("%s",request.Params["amount"])
 	amount,_:=strconv.ParseFloat(amountStr,64)
-	amount=Round(amount,2)
+	amount=mathutil.Round(amount,2)
 	amountStr=fmt.Sprintf("%.2f",amount)
 
 	//param
@@ -299,8 +300,3 @@ func notifyAlipaySuccess(response route.RouteResponse){
 	response.ResponseWriter.Write([]byte("success"))
 }
 
-func Round(f float64, n int) float64 {
-	floatStr := fmt.Sprintf("%."+strconv.Itoa(n)+"f", f)
-	inst, _ := strconv.ParseFloat(floatStr, 64)
-	return inst
-}
