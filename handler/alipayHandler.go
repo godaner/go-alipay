@@ -255,45 +255,72 @@ func PayOverHandler(response route.RouteResponse, request route.RouteRequest){
 	var noti, _ = client.GetTradeNotification(request.Request)
 	// handler service
 	if noti!=nil{
-		tradeNo:=noti.OutTradeNo
-		log.Println("PayOverHandler start ! tradeno is: ",tradeNo,", trade status is : ",noti.TradeStatus)
-		//pay success?
-		if noti.TradeStatus == alipay.K_TRADE_STATUS_TRADE_SUCCESS {
-
-			session:=mgosess.OpenSession()
-			defer session.Close()
-			c:=session.DB(mgosess.DB).C(model.TradeCol)
-
-			selector:=bson.M{"tradeno":tradeNo}
-			q:=c.Find(selector)
-			//is exits ?
-			if n,_:=q.Count();n==0{
-				log.Println("PayOverHandler Trade is not exits ! tradeno is: ",tradeNo)
-				return
-			}
-			trade:=model.Trade{}
-			q.One(&trade)
-			//is success ?
-			if trade.Status== model.TRADE_STATUS_TRADE_SUCCESS {
-				log.Println("PayOverHandler trade have pay success ! tradeno is: ",tradeNo)
-				notifyAliPaySuccess(response)
-				return
-			}
-
-			// update status to "pay success" , only one can access this program
-			err:=updateTradeSuccess(c,tradeNo,noti.TotalAmount,noti.SellerId)
-			if err!=nil {
-				log.Println("PayOverHandler Trade Update fail ! tradeno is: ",tradeNo," , err is: ",err)
-				return
-			}
-			notifyAliPaySuccess(response)
-			log.Println("PayOverHandler trade pay success ! tradeno is: ",tradeNo)
-
+		log.Println("PayOverHandler start ! tradeno is: ",noti.OutTradeNo,", trade status is : ",noti.TradeStatus)
+		switch noti.TradeStatus {
+		case alipay.K_TRADE_STATUS_TRADE_SUCCESS:
+			tradeSuccess(noti,request,response)
+		case alipay.K_TRADE_STATUS_TRADE_FINISHED:
+			tradeFinished(noti,request,response)
+		case alipay.K_TRADE_STATUS_TRADE_CLOSED:
+			tradeClosed(noti,request,response)
+		case alipay.K_TRADE_STATUS_WAIT_BUYER_PAY:
+			tradeWaitBuyerPay(noti,request,response)
 		}
 	}
 
 
 }
+
+func tradeSuccess(notification *alipay.TradeNotification, request route.RouteRequest, response route.RouteResponse) {
+	tradeNo:=notification.OutTradeNo
+	session:=mgosess.OpenSession()
+	defer session.Close()
+	c:=session.DB(mgosess.DB).C(model.TradeCol)
+
+	selector:=bson.M{"tradeno":tradeNo}
+	q:=c.Find(selector)
+	//is exits ?
+	if n,_:=q.Count();n==0{
+		log.Println("PayOverHandler Trade is not exits ! tradeno is: ",tradeNo)
+		return
+	}
+	trade:=model.Trade{}
+	q.One(&trade)
+	//is success ?
+	if trade.Status== model.TRADE_STATUS_TRADE_SUCCESS {
+		log.Println("PayOverHandler trade have pay success ! tradeno is: ",tradeNo)
+		notifyAliPaySuccess(response)
+		return
+	}
+
+	// update status to "pay success" , only one can access this program
+	err:=updateTradeSuccess(c,tradeNo,notification.TotalAmount,notification.SellerId)
+	if err!=nil {
+		log.Println("PayOverHandler Trade Update fail ! tradeno is: ",tradeNo," , err is: ",err)
+		return
+	}
+	notifyAliPaySuccess(response)
+	log.Println("tradeSuccess handle trade success ! trade status is : ",notification.TradeStatus," , tradeno is: ",tradeNo)
+}
+func tradeFinished(notification *alipay.TradeNotification, request route.RouteRequest, response route.RouteResponse) {
+	tradeNo:=notification.OutTradeNo
+
+	notifyAliPaySuccess(response)
+	log.Println("tradeFinished handle trade success ! trade status is : ",notification.TradeStatus," , tradeno is: ",tradeNo)
+}
+func tradeClosed(notification *alipay.TradeNotification, request route.RouteRequest, response route.RouteResponse) {
+	tradeNo:=notification.OutTradeNo
+
+	notifyAliPaySuccess(response)
+	log.Println("tradeClosed handle trade success ! trade status is : ",notification.TradeStatus," , tradeno is: ",tradeNo)
+}
+func tradeWaitBuyerPay(notification *alipay.TradeNotification, request route.RouteRequest, response route.RouteResponse) {
+	tradeNo:=notification.OutTradeNo
+
+	notifyAliPaySuccess(response)
+	log.Println("tradeWaitBuyerPay handle trade success ! trade status is : ",notification.TradeStatus," , tradeno is: ",tradeNo)
+}
+
 func updateTradeSuccess(c *mgo.Collection,tradeNo string,totalAmount string,partnerId string)(error){
 	if partnerId!=PARTNER_ID{
 		return errors.Errorf("updateTradeSuccess partnerId is error ! PARTNER_ID is : ",PARTNER_ID," , partnerId is :",partnerId)
