@@ -10,6 +10,7 @@ func Routes() {
 		route.MakeAnyRoute("/alipay/pay/pc",PcPayHandler),
 		route.MakeAnyRoute("/alipay/pay/qr",QrPayHandler),
 		route.MakeAnyRoute("/alipay/payNotify",PayNotifyHandler),
-		route.MakeAnyRoute("/alipay/payReturn",PayReturnHandler),)
+		route.MakeAnyRoute("/alipay/payReturn",PayReturnHandler),
+		route.MakeAnyRoute("/alipay/refund",RefundHandler),)
 }
 

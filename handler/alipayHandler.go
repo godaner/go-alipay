@@ -335,3 +335,60 @@ func notifyAliPaySuccess(response route.RouteResponse){
 	log.Println("notifyAliPaySuccess notigy alipay finish ! len(notify) is : ",i," , err is : ",err)
 }
 
+
+
+func RefundHandler(response route.RouteResponse, request route.RouteRequest){
+	tradeNo:=request.Params["tradeNo"].(string)
+	log.Println("RefundHandler trade start ! trade no is :",tradeNo)
+	//exits trade ?
+	session:=mgosess.OpenSession()
+	defer session.Close()
+	c:=session.DB(mgosess.DB).C(model.TradeCol)
+	selector:=bson.M{"tradeno":tradeNo}
+	q:=c.Find(selector)
+	if n,_:=q.Count();n==0{
+		log.Println("RefundHandler trade is not exits ! trade no is :",tradeNo)
+		return
+	}
+	// fetch alipay trade status
+	var pp = alipay.AliPayTradeQuery{} //mobile wap page , it will try to open alipay app
+	pp.OutTradeNo = tradeNo
+	res,er:=client.TradeQuery(pp)
+
+	if er!=nil||!res.IsSuccess() {
+		log.Println("RefundHandler call TradeQuery api fail ! tradeno is: ",tradeNo," , err is: ",er)
+		return
+	}
+	if res.AliPayTradeQuery.TradeStatus != alipay.K_TRADE_STATUS_TRADE_SUCCESS {
+		log.Println("RefundHandler alipay trade status is not TRADE_SUCCESS ! tradeno is: ",tradeNo," , aplipay status is: ",res.AliPayTradeQuery.TradeStatus)
+		return
+	}
+	//check local status
+	trade:=model.Trade{}
+	q.One(&trade)
+	if trade.Status!=model.TRADE_STATUS_TRADE_SUCCESS{
+		log.Println("RefundHandler local trade status is not TRADE_SUCCESS ! tradeno is: ",tradeNo," , local status is: ",res.AliPayTradeQuery.TradeStatus)
+		return
+	}
+
+	//build refund request
+	//param
+	var p = alipay.AliPayTradeRefund{} //mobile wap page , it will try to open alipay app
+	//var p = alipay.AliPayTradePagePay{} //pc web page
+	p.OutTradeNo = tradeNo
+	p.RefundAmount = fmt.Sprintf("%.2f",trade.Amount)
+	var results, err = client.TradeRefund(p)
+	//var url, err = client.TradePagePay(p) //
+	if err != nil||!results.IsSuccess() {
+		log.Println("RefundHandler call refund api fail ! trade no is :",tradeNo," , err is : ",err)
+		return
+	}
+	selector=bson.M{"tradeno":tradeNo}
+	update:=bson.M{"$set":bson.M{"status":model.TRADE_STATUS_TRADE_CLOSED}}
+	err=c.Update(selector,update)
+	if err!=nil {
+		log.Println("RefundHandler trade update to close fail ! trade no is :",tradeNo)
+		return
+	}
+	log.Println("RefundHandler trade is refund success ! trade no is :",tradeNo)
+}
