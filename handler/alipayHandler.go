@@ -436,7 +436,7 @@ func RefundHandler(response route.RouteResponse, request route.RouteRequest){
 		return
 	}
 	selector=bson.M{"tradeno":tradeNo}
-	update:=bson.M{"$set":bson.M{"status":model.TRADE_STATUS_TRADE_CLOSED}}
+	update:=bson.M{"$set":bson.M{"status":model.TRADE_STATUS_TRADE_CLOSED,"closetime":go_util.Unix()}}
 	err=c.Update(selector,update)
 	if err!=nil {
 		log.Println("RefundHandler trade update to close fail ! trade no is :",tradeNo)
