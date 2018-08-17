@@ -12,7 +12,6 @@ import (
 	"strconv"
 	"time"
 	"gopkg.in/mgo.v2"
-	"github.com/pkg/errors"
 	"github.com/godaner/go-util"
 )
 
@@ -37,7 +36,7 @@ func init(){
 	checkUnSuccessTrade()
 }
 func checkUnSuccessTrade() {
-	ticker := time.NewTicker(time.Second * 10)
+	ticker := time.NewTicker(time.Second * 30)
 	go func() {
 		session:=mgosess.OpenSession()
 		defer session.Close()
@@ -53,22 +52,37 @@ func checkUnSuccessTrade() {
 				results,err:=client.TradeQuery(p)
 
 				if err!=nil {
-					log.Println("checkUnSuccessTrade TradeQuery error ! tradeno is: ",tradeNo," , err is: ",err)
+					log.Println("checkUnSuccessTrade call TradeQuery api error ! tradeno is: ",tradeNo," , err is: ",err)
 					continue
 				}
 				//log.Println("checkUnSuccessTrade get trade status ! tradeno is: ",tradeNo," , trade status is: ",results.AliPayTradeQuery.TradeStatus)
 				if results.AliPayTradeQuery.TradeStatus == alipay.K_TRADE_STATUS_TRADE_SUCCESS {
-					err:=updateTradeSuccess(c,tradeNo,results.AliPayTradeQuery.TotalAmount,PARTNER_ID)
+					checkParam:=map[string]interface{}{"tradeNo":tradeNo,"totalAmount":results.AliPayTradeQuery.TotalAmount,"partnerId":PARTNER_ID}
+					newSetParam:=makeCheckSetTrade(results)
+					err:=updateTradeSuccess(c,checkParam,newSetParam)
 					if err!=nil {
-						log.Println("checkUnSuccessTrade Trade Update fail ! tradeno is: ",tradeNo," , err is: ",err)
+						log.Println("checkUnSuccessTrade update trade status to success fail ! tradeno is: ",tradeNo," , err is: ",err)
 						continue
 					}
-					log.Println("checkUnSuccessTrade trade is success , status syncing ! tradeNo is : ",tradeNo)
+					log.Println("checkUnSuccessTrade update trade status to success is ok , status syncing ! tradeNo is : ",tradeNo)
 				}
 			}
 
 		}
 	}()
+}
+func makeCheckSetTrade(results *alipay.AliPayTradeQueryResponse) model.Trade {
+	buyerPayAmount,_:=strconv.ParseFloat(results.AliPayTradeQuery.BuyerPayAmount,64)
+	pointAmount,_:=strconv.ParseFloat(results.AliPayTradeQuery.PointAmount,64)
+	invoiceAmount,_:=strconv.ParseFloat(results.AliPayTradeQuery.InvoiceAmount,64)
+	receiptAmount,_:=strconv.ParseFloat(results.AliPayTradeQuery.ReceiptAmount,64)
+	return model.Trade{
+		BuyerId:results.AliPayTradeQuery.BuyerUserId,
+		BuyerPayAmount:buyerPayAmount,
+		PointAmount:pointAmount,
+		InvoiceAmount:invoiceAmount,
+		ReceiptAmount:receiptAmount,
+	}
 }
 
 
@@ -77,6 +91,7 @@ func checkUnSuccessTrade() {
 func MobilePayHandler(response route.RouteResponse, request route.RouteRequest) {
 	//var
 	subject:=request.Params["subject"].(string)
+	body:=request.Params["body"].(string)
 	tradeNo:= go_util.GetSnowFlakeIdStr(UNIQUE_ID)
 	amountStr:= fmt.Sprintf("%s",request.Params["amount"])
 	amount,_:=strconv.ParseFloat(amountStr,64)
@@ -111,8 +126,11 @@ func MobilePayHandler(response route.RouteResponse, request route.RouteRequest) 
 		Id:go_util.GetSnowFlakeId(UNIQUE_ID),
 		UserId:USER_ID,
 		Subject:subject,
+		Body:body,
+		TimeoutExpress:TIMEOUT_EXPRESS,
 		TradeNo:tradeNo,
 		Amount:amount,
+		SellerId:PARTNER_ID,
 		Status:model.TRADE_STATUS_WAIT_BUYER_PAY,
 		CreateTime:go_util.Unix(),
 	})
@@ -128,6 +146,7 @@ func QrPayHandler(response route.RouteResponse, request route.RouteRequest) {
 
 	//var
 	subject:=request.Params["subject"].(string)
+	body:=request.Params["body"].(string)
 	tradeNo:= go_util.UnixStr()
 	amountStr:= fmt.Sprintf("%s",request.Params["amount"])
 	amount,_:=strconv.ParseFloat(amountStr,64)
@@ -158,8 +177,11 @@ func QrPayHandler(response route.RouteResponse, request route.RouteRequest) {
 		Id:go_util.GetSnowFlakeId(UNIQUE_ID),
 		UserId:USER_ID,
 		Subject:subject,
+		Body:body,
+		TimeoutExpress:TIMEOUT_EXPRESS,
 		TradeNo:tradeNo,
 		Amount:amount,
+		SellerId:PARTNER_ID,
 		Status:model.TRADE_STATUS_WAIT_BUYER_PAY,
 		CreateTime:go_util.Unix(),
 	})
@@ -183,6 +205,7 @@ func QrPayHandler(response route.RouteResponse, request route.RouteRequest) {
 func PcPayHandler(response route.RouteResponse, request route.RouteRequest) {
 	//var
 	subject:=request.Params["subject"].(string)
+	body:=request.Params["body"].(string)
 	tradeNo:= go_util.UnixStr()
 	amountStr:= fmt.Sprintf("%s",request.Params["amount"])
 	amount,_:=strconv.ParseFloat(amountStr,64)
@@ -213,8 +236,11 @@ func PcPayHandler(response route.RouteResponse, request route.RouteRequest) {
 		Id:go_util.GetSnowFlakeId(UNIQUE_ID),
 		UserId:USER_ID,
 		Subject:subject,
+		Body:body,
+		TimeoutExpress:TIMEOUT_EXPRESS,
 		TradeNo:tradeNo,
 		Amount:amount,
+		SellerId:PARTNER_ID,
 		Status:model.TRADE_STATUS_WAIT_BUYER_PAY,
 		CreateTime:go_util.Unix(),
 	})
@@ -294,13 +320,32 @@ func tradeSuccess(notification *alipay.TradeNotification, request route.RouteReq
 	}
 
 	// update status to "pay success" , only one can access this program
-	err:=updateTradeSuccess(c,tradeNo,notification.TotalAmount,notification.SellerId)
+	checkParam:=map[string]interface{}{"tradeNo":tradeNo,"totalAmount":notification.TotalAmount,"partnerId":notification.SellerId}
+	newSetParam:= makeNotifySetTrade(notification)
+	err:=updateTradeSuccess(c,checkParam,newSetParam)
 	if err!=nil {
 		log.Println("PayOverHandler Trade Update fail ! tradeno is: ",tradeNo," , err is: ",err)
 		return
 	}
 	notifyAliPaySuccess(response)
 	log.Println("tradeSuccess handle trade success ! trade status is : ",notification.TradeStatus," , tradeno is: ",tradeNo)
+}
+func makeNotifySetTrade(notification *alipay.TradeNotification) model.Trade {
+	gmtPayment:=notification.GmtPayment
+	gmtCreate:=notification.GmtCreate
+	buyerPayAmount,_:=strconv.ParseFloat(notification.BuyerPayAmount,64)
+	pointAmount,_:=strconv.ParseFloat(notification.PointAmount,64)
+	invoiceAmount,_:=strconv.ParseFloat(notification.InvoiceAmount,64)
+	receiptAmount,_:=strconv.ParseFloat(notification.ReceiptAmount,64)
+	return model.Trade{
+		BuyerId:notification.BuyerId,
+		GmtPayment:gmtPayment,
+		GmtCreate:gmtCreate,
+		BuyerPayAmount:buyerPayAmount,
+		PointAmount:pointAmount,
+		InvoiceAmount:invoiceAmount,
+		ReceiptAmount:receiptAmount,
+	}
 }
 func tradeFinished(notification *alipay.TradeNotification, request route.RouteRequest, response route.RouteResponse) {
 	tradeNo:=notification.OutTradeNo
@@ -321,13 +366,20 @@ func tradeWaitBuyerPay(notification *alipay.TradeNotification, request route.Rou
 	log.Println("tradeWaitBuyerPay handle trade success ! trade status is : ",notification.TradeStatus," , tradeno is: ",tradeNo)
 }
 
-func updateTradeSuccess(c *mgo.Collection,tradeNo string,totalAmount string,partnerId string)(error){
-	if partnerId!=PARTNER_ID{
-		return errors.Errorf("updateTradeSuccess partnerId is error ! PARTNER_ID is : ",PARTNER_ID," , partnerId is :",partnerId)
-	}
-	amountFloat64,_:=strconv.ParseFloat(totalAmount,64)
-	selector:=bson.M{"$and":[]bson.M{{"tradeno":tradeNo},{"amount":amountFloat64},{"status":model.TRADE_STATUS_WAIT_BUYER_PAY}}}
-	update:=bson.M{"$set":bson.M{"status":model.TRADE_STATUS_TRADE_SUCCESS,"finishtime":go_util.Unix()}}
+func updateTradeSuccess(c *mgo.Collection,checkParam map[string]interface{},newSet model.Trade)(error){
+	partnerId:=checkParam["partnerId"]
+	totalAmountStr:=checkParam["totalAmount"].(string)
+	amountFloat64,_:=strconv.ParseFloat(totalAmountStr,64)
+	tradeNo:=checkParam["tradeNo"]
+
+	selector:=bson.M{"$and":[]bson.M{{"tradeno":tradeNo},{"sellerid":partnerId},{"amount":amountFloat64},{"status":model.TRADE_STATUS_WAIT_BUYER_PAY}}}
+	update:=bson.M{"$set":bson.M{
+		"status":model.TRADE_STATUS_TRADE_SUCCESS,
+		"paymenttime":go_util.Unix(),
+		"buyerid":newSet.BuyerId,
+		"gmtcreate":newSet.GmtCreate,
+		"gmtpayment":newSet.GmtPayment,
+	}}
 	return c.Update(selector,update)
 }
 func notifyAliPaySuccess(response route.RouteResponse){

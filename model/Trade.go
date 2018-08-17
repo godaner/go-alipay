@@ -12,9 +12,25 @@ type Trade struct {
 	Id int64 `bson:id`
 	UserId int64 `bson:userid`
 	Subject string	`bson:subject`
+	Body string	`bson:body`
 	TradeNo string	`bson:tradeno`
 	Amount float64	`bson:amount`
+	TimeoutExpress string	`bson:timeoutexpress`
+	BuyerId string	`bson:buyerid`
+	SellerId string	`bson:sellerid`
+	BuyerPayAmount float64 `buyerpayamount`
+	PointAmount float64 `pointamount`
+	InvoiceAmount float64 `invoiceamount`
+	ReceiptAmount float64 `receiptamount`
+	GmtCreate string `bson:gmtcreate`
+	GmtPayment string `bson:gmtpayment`
+	GmtClose string `bson:gmtclose`
+	GmtRefund string `bson:gmtrefund`
+	GmtFinish string `bson:gmtfinish`
 	CreateTime int64 `bson:createtime`
+	PaymentTime int64 `bson:paymenttime`
+	CloseTime int64 `bson:closetime`
+	RefundTime int64 `bson:refundtime`
 	FinishTime int64 `bson:finishtime`
 	Status uint8	`bson:status`
 }
