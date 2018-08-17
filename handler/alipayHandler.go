@@ -408,7 +408,7 @@ func RefundHandler(response route.RouteResponse, request route.RouteRequest){
 	res,er:=client.TradeQuery(pp)
 
 	if er!=nil||!res.IsSuccess() {
-		log.Println("RefundHandler call TradeQuery api fail ! tradeno is: ",tradeNo," , err is: ",er)
+		log.Println("RefundHandler call TradeQuery api fail ! tradeno is: ",tradeNo,", res is :",res," , err is: ",er)
 		return
 	}
 	if res.AliPayTradeQuery.TradeStatus != alipay.K_TRADE_STATUS_TRADE_SUCCESS {
